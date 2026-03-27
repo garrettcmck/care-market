@@ -10,16 +10,17 @@ import { fetchCareMarketState, fetchAllCampaigns, Campaign } from "@/utils/accou
 import styles from "./page.module.css";
 
 function campaignToCardData(c: Campaign): CampaignData {
-  const deposited = Number(c.totalSolDeposited) / LAMPORTS_PER_SOL;
-  const goal = Number(c.goalLamports) / LAMPORTS_PER_SOL;
-  const yieldPct = goal > 0 ? Math.min(Math.round((deposited / goal) * 100), 100) : 0;
   return {
-    id: c.id, name: c.charityName, desc: c.description, goal, deposited,
+    id: c.id,
+    name: c.charityName,
+    desc: c.description,
+    goalSol: Number(c.goalLamports) / LAMPORTS_PER_SOL,
+    totalStaked: Number(c.totalSolDeposited) / LAMPORTS_PER_SOL,
     contributors: c.contributorCount,
     status: c.status,
-    yieldPct: c.status === "Completed" ? 100 : yieldPct,
     charityWallet: c.charityWallet.toBase58(),
     jitosolInVault: Number(c.totalJitosolInVault),
+    createdAt: Number(c.createdAt),
   };
 }
 

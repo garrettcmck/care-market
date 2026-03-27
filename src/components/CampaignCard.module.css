@@ -50,6 +50,14 @@
   display: flex;
   justify-content: space-between;
   font-size: 11.5px;
-  color: #b0b0a8;
+  color: #0a7c5a;
+  font-weight: 600;
   margin-top: 7px;
+}
+.substats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #b0b0a8;
+  margin-top: 3px;
 }

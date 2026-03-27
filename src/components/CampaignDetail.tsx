@@ -6,8 +6,10 @@ import { useCareMarket } from "@/hooks/useCareMarket";
 import { getJitosolRate } from "@/sdk/jupiter";
 import { fetchUserStake, UserStake } from "@/utils/accounts";
 import { findCampaignPDA } from "@/utils/constants";
-import { CampaignData } from "./CampaignCard";
+import { CampaignData, estimateYieldEarned, estimateWeeksLeft } from "./CampaignCard";
 import styles from "./CampaignDetail.module.css";
+
+const APY = 0.075;
 
 export default function CampaignDetail({ campaign, onBack }: { campaign: CampaignData; onBack: () => void }) {
   const [tab, setTab] = useState<"stake" | "manage">("stake");
@@ -21,7 +23,6 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
 
   useEffect(() => { getJitosolRate().then(setRate).catch(() => {}); }, []);
 
-  // Load user's stake for this campaign
   useEffect(() => {
     if (!wallet.publicKey) { setUserStake(null); return; }
     setStakeLoading(true);
@@ -34,10 +35,20 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
 
   const sol = parseFloat(amount) || 0;
   const fee = sol * 0.0001;
-  const weeklyYield = sol * 0.075 / 52;
-  const weeksLeft = campaign.yieldPct < 100
-    ? Math.max(1, Math.ceil((campaign.goal * (1 - campaign.yieldPct / 100)) / (campaign.deposited * 0.075 / 52)))
+
+  // Yield calculations
+  const yieldEarned = campaign.status === "Completed"
+    ? campaign.goalSol
+    : estimateYieldEarned(campaign.totalStaked, campaign.createdAt);
+  const progressPct = campaign.goalSol > 0
+    ? Math.min(Math.round((yieldEarned / campaign.goalSol) * 100), 100)
     : 0;
+  const weeksLeft = estimateWeeksLeft(campaign.goalSol, campaign.totalStaked, yieldEarned);
+
+  // What this new stake adds
+  const newWeeklyYield = sol * APY / 52;
+  const totalWeeklyYield = campaign.totalStaked * APY / 52;
+  const remaining = Math.max(0, campaign.goalSol - yieldEarned);
 
   return (
     <div>
@@ -53,24 +64,34 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
         <p>{campaign.desc}</p>
       </div>
 
+      {/* Progress toward YIELD GOAL, not stake amount */}
       <div className={styles.progress}>
         <div className={styles.progressTop}>
-          <span className={styles.pct}>{campaign.yieldPct}%</span>
+          <span className={styles.pct}>{yieldEarned.toFixed(2)} / {campaign.goalSol} SOL</span>
           <span className={`${styles.badge} ${styles[`badge_${campaign.status}`]}`}>{campaign.status}</span>
         </div>
         <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: `${Math.min(campaign.yieldPct, 100)}%` }} />
+          <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
         </div>
         <div className={styles.progressBottom}>
-          <span>{campaign.deposited} of {campaign.goal} SOL</span>
-          <span>{weeksLeft > 0 ? `~${weeksLeft} weeks` : "Goal reached"}</span>
+          <span>Yield earned toward goal</span>
+          <span>{campaign.status === "Completed" ? "Goal reached" : weeksLeft < 9999 ? `~${weeksLeft} weeks left` : "Needs more stakes"}</span>
         </div>
       </div>
 
       <div className={styles.statGrid}>
-        <div className={styles.stat}><div className={styles.statVal}>{campaign.contributors}</div><div className={styles.statLabel}>Contributors</div></div>
-        <div className={styles.stat}><div className={styles.statVal}>7.5%</div><div className={styles.statLabel}>Est. APY</div></div>
-        <div className={styles.stat}><div className={styles.statVal}>{rate.toFixed(3)}</div><div className={styles.statLabel}>jitoSOL rate</div></div>
+        <div className={styles.stat}>
+          <div className={styles.statVal}>{campaign.totalStaked.toFixed(1)}</div>
+          <div className={styles.statLabel}>SOL staked</div>
+        </div>
+        <div className={styles.stat}>
+          <div className={styles.statVal}>{campaign.contributors}</div>
+          <div className={styles.statLabel}>Contributors</div>
+        </div>
+        <div className={styles.stat}>
+          <div className={styles.statVal}>{totalWeeklyYield.toFixed(3)}</div>
+          <div className={styles.statLabel}>SOL / week</div>
+        </div>
       </div>
 
       <div className={styles.tabs}>
@@ -94,7 +115,8 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                 </div>
                 <div className={styles.fees}>
                   <div className={styles.feeRow}><span>Fee (0.01%)</span><span>{fee.toFixed(6)} SOL</span></div>
-                  <div className={styles.feeRow}><span>Est. weekly yield</span><span className={styles.green}>{weeklyYield.toFixed(4)} SOL</span></div>
+                  <div className={styles.feeRow}><span>Your weekly yield</span><span className={styles.green}>{newWeeklyYield.toFixed(4)} SOL</span></div>
+                  <div className={styles.feeRow}><span>Remaining to goal</span><span>{remaining.toFixed(2)} SOL</span></div>
                   <div className={`${styles.feeRow} ${styles.feeDivider}`}>
                     <span className={styles.bold}>You get back</span>
                     <span className={`${styles.green} ${styles.bold}`}>{sol.toFixed(2)} SOL</span>
@@ -103,7 +125,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                 <button className={styles.primaryBtn} onClick={() => donate(campaign.id, sol)} disabled={loading || sol <= 0}>
                   {loading ? "Swapping SOL to jitoSOL..." : `Stake ${sol} SOL`}
                 </button>
-                <p className={styles.note}>Your SOL returns when the goal is reached</p>
+                <p className={styles.note}>Your SOL earns yield for the charity, then returns to you in full</p>
               </>
             )}
           </>
@@ -112,7 +134,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
         {tab === "stake" && campaign.status === "Completed" && (
           <div className={styles.completedMsg}>
             <p className={styles.bold}>Campaign completed!</p>
-            <p>The charity has been paid. Switch to &quot;My stake&quot; to claim your SOL.</p>
+            <p>The yield goal has been reached and the charity has been paid. Switch to &quot;My stake&quot; to claim your SOL back.</p>
           </div>
         )}
 

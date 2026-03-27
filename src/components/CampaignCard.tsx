@@ -2,20 +2,47 @@
 import React from "react";
 import styles from "./CampaignCard.module.css";
 
+const APY = 0.075;
+
 export interface CampaignData {
   id: number;
   name: string;
   desc: string;
-  goal: number;
-  deposited: number;
+  goalSol: number;         // yield target in SOL (e.g. 25 SOL to feed a child)
+  totalStaked: number;     // total SOL staked by all contributors
   contributors: number;
   status: "Active" | "Completed" | "Cancelled" | "Closed";
-  yieldPct: number;
   charityWallet: string;
   jitosolInVault: number;
+  createdAt: number;       // unix timestamp
+}
+
+// Estimate yield earned so far based on time staked and APY
+export function estimateYieldEarned(totalStaked: number, createdAt: number): number {
+  const now = Date.now() / 1000;
+  const elapsed = Math.max(0, now - createdAt);
+  const years = elapsed / (365.25 * 24 * 3600);
+  return totalStaked * APY * years;
+}
+
+// Estimate weeks remaining to reach goal
+export function estimateWeeksLeft(goalSol: number, totalStaked: number, yieldEarned: number): number {
+  if (totalStaked <= 0) return Infinity;
+  const remaining = Math.max(0, goalSol - yieldEarned);
+  const weeklyYield = totalStaked * APY / 52;
+  if (weeklyYield <= 0) return Infinity;
+  return Math.ceil(remaining / weeklyYield);
 }
 
 export default function CampaignCard({ campaign, onClick }: { campaign: CampaignData; onClick: () => void }) {
+  const yieldEarned = campaign.status === "Completed"
+    ? campaign.goalSol
+    : estimateYieldEarned(campaign.totalStaked, campaign.createdAt);
+  const progressPct = campaign.goalSol > 0
+    ? Math.min(Math.round((yieldEarned / campaign.goalSol) * 100), 100)
+    : 0;
+  const weeks = estimateWeeksLeft(campaign.goalSol, campaign.totalStaked, yieldEarned);
+
   return (
     <div className={styles.card} onClick={onClick}>
       <div className={styles.top}>
@@ -27,13 +54,17 @@ export default function CampaignCard({ campaign, onClick }: { campaign: Campaign
         <div
           className={styles.progressFill}
           style={{
-            width: `${Math.min(campaign.yieldPct, 100)}%`,
-            background: campaign.yieldPct >= 100 ? "#2d8659" : "#0a7c5a",
+            width: `${progressPct}%`,
+            background: progressPct >= 100 ? "#2d8659" : "#0a7c5a",
           }}
         />
       </div>
       <div className={styles.stats}>
-        <span>{campaign.deposited} / {campaign.goal} SOL</span>
+        <span>{yieldEarned.toFixed(2)} / {campaign.goalSol} SOL earned</span>
+        <span>{campaign.status === "Completed" ? "Goal reached" : weeks < 9999 ? `~${weeks}w left` : "Needs stakes"}</span>
+      </div>
+      <div className={styles.substats}>
+        <span>{campaign.totalStaked.toFixed(1)} SOL staked</span>
         <span>{campaign.contributors} contributors</span>
       </div>
     </div>
