@@ -1,21 +1,27 @@
+// Care Market Admin CLI
+//
 // Usage:
-//   node scripts/admin.cjs update-goal <campaign_id> <new_goal_sol>
-//   node scripts/admin.cjs update-name <campaign_id> "New Name"
-//   node scripts/admin.cjs update-desc <campaign_id> "New description"
-//   node scripts/admin.cjs show <campaign_id>
-//   node scripts/admin.cjs list
-
-const nodeFetch = require("node-fetch");
-const https = require("https");
-const agent = new https.Agent({ rejectUnauthorized: false });
-globalThis.fetch = (url, opts = {}) => nodeFetch(url, { ...opts, agent });
+//   node scripts/admin.cjs --keypair <path_to_id.json> list
+//   node scripts/admin.cjs --keypair <path_to_id.json> show <campaign_id>
+//   node scripts/admin.cjs --keypair <path_to_id.json> update-goal <campaign_id> <sol_amount>
+//   node scripts/admin.cjs --keypair <path_to_id.json> update-name <campaign_id> "New Name"
+//   node scripts/admin.cjs --keypair <path_to_id.json> update-desc <campaign_id> "New description"
+//   node scripts/admin.cjs --keypair <path_to_id.json> create <goal_sol> "Charity Name" "Description"
+//
+// The keypair file is your Solana wallet JSON (e.g. id.json from `solana-keygen new`).
+// It never leaves your machine — transactions are signed locally.
+//
+// Optional: --rpc <url> to use a custom RPC (default: devnet)
 
 const { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction, LAMPORTS_PER_SOL } = require("@solana/web3.js");
+const { TOKEN_PROGRAM_ID } = require("@solana/spl-token");
 const { createHash } = require("crypto");
 const fs = require("fs");
+const path = require("path");
 
 const PROGRAM_ID = new PublicKey("3CQ9sfki5SgF4pdL7qZgFWGzf4h3HSfgNXwWS5usbUsz");
-const RPC = "https://api.devnet.solana.com";
+const JITOSOL_MINT = new PublicKey("Fc45LwrnMeyrvADyescSCKotE47CUE8SzjARCXLGDvKm");
+const DEFAULT_RPC = "https://api.devnet.solana.com";
 
 function disc(name) { return createHash("sha256").update(`global:${name}`).digest().subarray(0, 8); }
 function findPDA(seeds) { return PublicKey.findProgramAddressSync(seeds, PROGRAM_ID); }
@@ -25,121 +31,215 @@ function encodeOption(hasValue, encodeValue) {
   return Buffer.concat([Buffer.from([1]), encodeValue()]);
 }
 
+// Parse args
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let keypairPath = null;
+  let rpcUrl = DEFAULT_RPC;
+  const rest = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--keypair" && args[i + 1]) {
+      keypairPath = args[++i];
+    } else if (args[i] === "--rpc" && args[i + 1]) {
+      rpcUrl = args[++i];
+    } else {
+      rest.push(args[i]);
+    }
+  }
+
+  return { keypairPath, rpcUrl, cmd: rest[0], args: rest.slice(1) };
+}
+
+function loadKeypair(kpPath) {
+  const resolved = path.resolve(kpPath);
+  if (!fs.existsSync(resolved)) {
+    console.error(`Keypair file not found: ${resolved}`);
+    console.error("Generate one with: solana-keygen new --outfile my-wallet.json");
+    process.exit(1);
+  }
+  const data = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  return Keypair.fromSecretKey(Uint8Array.from(data));
+}
+
+// Deserialize campaign from raw account data
+function parseCampaign(data) {
+  let off = 8; // skip discriminator
+  const id = Number(data.readBigUInt64LE(off)); off += 8;
+  const careMarket = new PublicKey(data.subarray(off, off + 32)); off += 32;
+  const charityWallet = new PublicKey(data.subarray(off, off + 32)); off += 32;
+  const nl = data.readUInt32LE(off); off += 4;
+  const name = data.subarray(off, off + nl).toString(); off += nl;
+  const dl = data.readUInt32LE(off); off += 4;
+  const desc = data.subarray(off, off + dl).toString(); off += dl;
+  const goal = Number(data.readBigUInt64LE(off)) / LAMPORTS_PER_SOL; off += 8;
+  const deposited = Number(data.readBigUInt64LE(off)) / LAMPORTS_PER_SOL; off += 8;
+  const jitosol = Number(data.readBigUInt64LE(off)) / 1e9; off += 8;
+  const contributors = data.readUInt32LE(off); off += 4;
+  const status = ["Active", "Completed", "Cancelled", "Closed"][data[off]];
+  return { id, name, desc, goal, deposited, jitosol, contributors, status, charityWallet: charityWallet.toBase58() };
+}
+
 async function main() {
-  const conn = new Connection(RPC, "confirmed");
-  const admin = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync("/root/.config/solana/id.json"))));
+  const { keypairPath, rpcUrl, cmd, args } = parseArgs();
+
+  if (!cmd || cmd === "help") {
+    console.log("Care Market Admin CLI\n");
+    console.log("Usage: node scripts/admin.cjs --keypair <path> <command> [args]\n");
+    console.log("Commands:");
+    console.log("  list                                    Show all campaigns");
+    console.log("  show <id>                               Show campaign details");
+    console.log("  update-goal <id> <sol>                  Change yield goal");
+    console.log("  update-name <id> \"Name\"                 Change campaign name");
+    console.log("  update-desc <id> \"Description\"          Change description");
+    console.log("  create <goal_sol> \"Name\" \"Description\"  Create new campaign");
+    console.log("\nOptions:");
+    console.log("  --keypair <path>   Path to Solana keypair JSON file (required for writes)");
+    console.log("  --rpc <url>        RPC endpoint (default: devnet)");
+    return;
+  }
+
+  const conn = new Connection(rpcUrl, "confirmed");
   const [cmPDA] = findPDA([Buffer.from("care_market")]);
 
-  const cmd = process.argv[2];
-  const campaignId = parseInt(process.argv[3]);
-
+  // Read-only commands don't need a keypair
   if (cmd === "list") {
-    // Read CareMarketState to get campaign count
     const cmInfo = await conn.getAccountInfo(cmPDA);
-    const count = cmInfo.data.readBigUInt64LE(8 + 32 + 32 + 32 + 2 + 2);
-    console.log(`${count} campaigns\n`);
-    for (let i = 0; i < Number(count); i++) {
+    if (!cmInfo) { console.log("CareMarket not initialized"); return; }
+    const count = Number(cmInfo.data.readBigUInt64LE(8 + 32 + 32 + 32 + 2 + 2));
+    console.log(`${count} campaign(s)\n`);
+    for (let i = 0; i < count; i++) {
       const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(i));
       const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
       const info = await conn.getAccountInfo(campPDA);
       if (!info) continue;
-      const d = info.data;
-      let off = 8; // skip discriminator
-      const id = d.readBigUInt64LE(off); off += 8;
-      off += 32; // care_market
-      off += 32; // charity_wallet
-      const nameLen = d.readUInt32LE(off); off += 4;
-      const name = d.subarray(off, off + nameLen).toString(); off += nameLen;
-      const descLen = d.readUInt32LE(off); off += 4;
-      const desc = d.subarray(off, off + descLen).toString(); off += descLen;
-      const goal = Number(d.readBigUInt64LE(off)) / LAMPORTS_PER_SOL; off += 8;
-      const deposited = Number(d.readBigUInt64LE(off)) / LAMPORTS_PER_SOL; off += 8;
-      off += 8; // jitosol
-      const contributors = d.readUInt32LE(off); off += 4;
-      const status = ["Active", "Completed", "Cancelled", "Closed"][d[off]];
-      console.log(`Campaign ${id}: "${name}" | Goal: ${goal} SOL | Staked: ${deposited} SOL | ${contributors} contributors | ${status}`);
+      const c = parseCampaign(Buffer.from(info.data));
+      console.log(`  #${c.id}  "${c.name}" | Goal: ${c.goal} SOL | Staked: ${c.deposited} SOL | ${c.contributors} contributors | ${c.status}`);
     }
     return;
   }
 
   if (cmd === "show") {
-    const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(campaignId));
+    const id = parseInt(args[0]);
+    const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(id));
     const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
     const info = await conn.getAccountInfo(campPDA);
     if (!info) { console.log("Campaign not found"); return; }
-    const d = info.data;
-    let off = 8;
-    console.log("ID:", d.readBigUInt64LE(off).toString()); off += 8;
-    console.log("CareMarket:", new PublicKey(d.subarray(off, off+32)).toBase58()); off += 32;
-    console.log("Charity:", new PublicKey(d.subarray(off, off+32)).toBase58()); off += 32;
-    const nl = d.readUInt32LE(off); off += 4;
-    console.log("Name:", d.subarray(off, off+nl).toString()); off += nl;
-    const dl = d.readUInt32LE(off); off += 4;
-    console.log("Desc:", d.subarray(off, off+dl).toString()); off += dl;
-    console.log("Goal:", Number(d.readBigUInt64LE(off)) / LAMPORTS_PER_SOL, "SOL"); off += 8;
-    console.log("Deposited:", Number(d.readBigUInt64LE(off)) / LAMPORTS_PER_SOL, "SOL"); off += 8;
-    console.log("jitoSOL:", Number(d.readBigUInt64LE(off)) / 1e9); off += 8;
-    console.log("Contributors:", d.readUInt32LE(off)); off += 4;
-    console.log("Status:", ["Active", "Completed", "Cancelled", "Closed"][d[off]]);
+    const c = parseCampaign(Buffer.from(info.data));
+    console.log(`Campaign #${c.id}`);
+    console.log(`  Name:          ${c.name}`);
+    console.log(`  Description:   ${c.desc}`);
+    console.log(`  Goal:          ${c.goal} SOL (yield target)`);
+    console.log(`  Total staked:  ${c.deposited} SOL`);
+    console.log(`  jitoSOL:       ${c.jitosol}`);
+    console.log(`  Contributors:  ${c.contributors}`);
+    console.log(`  Status:        ${c.status}`);
+    console.log(`  Charity:       ${c.charityWallet}`);
+    console.log(`  PDA:           ${campPDA.toBase58()}`);
     return;
   }
 
-  if (!["update-goal", "update-name", "update-desc"].includes(cmd)) {
-    console.log("Usage:");
-    console.log("  node scripts/admin.cjs list");
-    console.log("  node scripts/admin.cjs show <id>");
-    console.log("  node scripts/admin.cjs update-goal <id> <sol_amount>");
-    console.log("  node scripts/admin.cjs update-name <id> \"New Name\"");
-    console.log("  node scripts/admin.cjs update-desc <id> \"New description\"");
+  // Write commands need a keypair
+  if (!keypairPath) {
+    console.error("Error: --keypair <path> is required for write commands");
+    console.error("Example: node scripts/admin.cjs --keypair ./my-wallet.json update-goal 0 10");
+    process.exit(1);
+  }
+
+  const admin = loadKeypair(keypairPath);
+  console.log(`Admin: ${admin.publicKey.toBase58()}`);
+  console.log(`Balance: ${(await conn.getBalance(admin.publicKey)) / LAMPORTS_PER_SOL} SOL\n`);
+
+  if (cmd === "update-goal" || cmd === "update-name" || cmd === "update-desc") {
+    const campaignId = parseInt(args[0]);
+    const value = args.slice(1).join(" ");
+    const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(campaignId));
+    const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
+
+    let goalOpt, nameOpt, descOpt, walletOpt;
+
+    if (cmd === "update-goal") {
+      const lamports = BigInt(Math.floor(parseFloat(value) * LAMPORTS_PER_SOL));
+      goalOpt = encodeOption(true, () => { const b = Buffer.alloc(8); b.writeBigUInt64LE(lamports); return b; });
+      nameOpt = encodeOption(false);
+      descOpt = encodeOption(false);
+      walletOpt = encodeOption(false);
+      console.log(`Updating campaign #${campaignId} goal to ${value} SOL`);
+    } else if (cmd === "update-name") {
+      goalOpt = encodeOption(false);
+      const nb = Buffer.from(value);
+      nameOpt = encodeOption(true, () => { const lb = Buffer.alloc(4); lb.writeUInt32LE(nb.length); return Buffer.concat([lb, nb]); });
+      descOpt = encodeOption(false);
+      walletOpt = encodeOption(false);
+      console.log(`Updating campaign #${campaignId} name to "${value}"`);
+    } else {
+      goalOpt = encodeOption(false);
+      nameOpt = encodeOption(false);
+      const db = Buffer.from(value);
+      descOpt = encodeOption(true, () => { const lb = Buffer.alloc(4); lb.writeUInt32LE(db.length); return Buffer.concat([lb, db]); });
+      walletOpt = encodeOption(false);
+      console.log(`Updating campaign #${campaignId} description to "${value}"`);
+    }
+
+    const data = Buffer.concat([disc("update_campaign"), goalOpt, nameOpt, descOpt, walletOpt]);
+    const tx = new Transaction().add({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: admin.publicKey, isSigner: true, isWritable: true },
+        { pubkey: cmPDA, isSigner: false, isWritable: false },
+        { pubkey: campPDA, isSigner: false, isWritable: true },
+      ],
+      data,
+    });
+
+    const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
+    console.log(`TX: ${sig}`);
+    console.log("Done!");
     return;
   }
 
-  const value = process.argv.slice(4).join(" ");
-  const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(campaignId));
-  const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
+  if (cmd === "create") {
+    const goalSol = parseFloat(args[0]);
+    const name = args[1];
+    const desc = args[2] || "";
 
-  // Build update_campaign data
-  // Args: Option<u64>, Option<String>, Option<String>, Option<Pubkey>
-  let goalOpt, nameOpt, descOpt, walletOpt;
+    // Read current campaign count
+    const cmInfo = await conn.getAccountInfo(cmPDA);
+    const count = Number(cmInfo.data.readBigUInt64LE(8 + 32 + 32 + 32 + 2 + 2));
+    const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(count));
+    const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
+    const [vaultPDA] = findPDA([Buffer.from("vault"), campPDA.toBuffer()]);
+    const charityWallet = Keypair.generate();
 
-  if (cmd === "update-goal") {
-    const lamports = BigInt(Math.floor(parseFloat(value) * LAMPORTS_PER_SOL));
-    goalOpt = encodeOption(true, () => { const b = Buffer.alloc(8); b.writeBigUInt64LE(lamports); return b; });
-    nameOpt = encodeOption(false);
-    descOpt = encodeOption(false);
-    walletOpt = encodeOption(false);
-    console.log(`Updating campaign ${campaignId} goal to ${value} SOL (${lamports} lamports)`);
-  } else if (cmd === "update-name") {
-    goalOpt = encodeOption(false);
-    const nameBytes = Buffer.from(value);
-    nameOpt = encodeOption(true, () => { const lb = Buffer.alloc(4); lb.writeUInt32LE(nameBytes.length); return Buffer.concat([lb, nameBytes]); });
-    descOpt = encodeOption(false);
-    walletOpt = encodeOption(false);
-    console.log(`Updating campaign ${campaignId} name to "${value}"`);
-  } else if (cmd === "update-desc") {
-    goalOpt = encodeOption(false);
-    nameOpt = encodeOption(false);
-    const descBytes = Buffer.from(value);
-    descOpt = encodeOption(true, () => { const lb = Buffer.alloc(4); lb.writeUInt32LE(descBytes.length); return Buffer.concat([lb, descBytes]); });
-    walletOpt = encodeOption(false);
-    console.log(`Updating campaign ${campaignId} description to "${value}"`);
+    console.log(`Creating campaign #${count}: "${name}" (${goalSol} SOL goal)`);
+    console.log(`Charity wallet: ${charityWallet.publicKey.toBase58()}`);
+
+    const nm = Buffer.from(name), ds = Buffer.from(desc);
+    const nl = Buffer.alloc(4); nl.writeUInt32LE(nm.length);
+    const dl = Buffer.alloc(4); dl.writeUInt32LE(ds.length);
+    const gl = Buffer.alloc(8); gl.writeBigUInt64LE(BigInt(Math.floor(goalSol * LAMPORTS_PER_SOL)));
+
+    const tx = new Transaction().add({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: admin.publicKey, isSigner: true, isWritable: true },
+        { pubkey: cmPDA, isSigner: false, isWritable: true },
+        { pubkey: campPDA, isSigner: false, isWritable: true },
+        { pubkey: vaultPDA, isSigner: false, isWritable: true },
+        { pubkey: JITOSOL_MINT, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data: Buffer.concat([disc("create_campaign"), charityWallet.publicKey.toBuffer(), nl, nm, dl, ds, gl]),
+    });
+
+    const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
+    console.log(`TX: ${sig}`);
+    console.log("Done!");
+    return;
   }
 
-  const data = Buffer.concat([disc("update_campaign"), goalOpt, nameOpt, descOpt, walletOpt]);
-
-  const tx = new Transaction().add({
-    programId: PROGRAM_ID,
-    keys: [
-      { pubkey: admin.publicKey, isSigner: true, isWritable: true },
-      { pubkey: cmPDA, isSigner: false, isWritable: false },
-      { pubkey: campPDA, isSigner: false, isWritable: true },
-    ],
-    data,
-  });
-
-  const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
-  console.log("TX:", sig);
-  console.log("Done!");
+  console.log(`Unknown command: ${cmd}. Run without arguments for help.`);
 }
 
 main().catch(e => { console.error("Error:", e.message); process.exit(1); });
