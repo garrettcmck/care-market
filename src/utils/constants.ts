@@ -5,8 +5,8 @@ export const JITOSOL_MINT = new PublicKey("Fc45LwrnMeyrvADyescSCKotE47CUE8SzjARC
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const JUPITER_QUOTE_API = "https://quote-api.jup.ag/v6";
 
-export const FEE_WALLET = new PublicKey("FyMwNiB3v4haiqNSXnM4ty5BapkhVbgpHRETGjJkDi3u");
-export const FEE_JITOSOL_ATA = new PublicKey("8D1Q8VBZaY5sQcpsXsE3Bg9GCqmmyStqfw6EkmpYH8T5");
+export const FEE_WALLET = new PublicKey("9RYCn13NH2NC5ADt681VVpk5rcRL4jYm3zrcgojdqvhA");
+export const FEE_JITOSOL_ATA = new PublicKey("F1Dn5ms8JS7Qy3CxH9dyxbiLobXefxcUuMuC9yGSWEWh");
 
 export const RPC_ENDPOINT = "https://api.devnet.solana.com";
 

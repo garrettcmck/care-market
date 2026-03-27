@@ -93,6 +93,8 @@ async function main() {
     console.log("  update-name <id> \"Name\"                 Change campaign name");
     console.log("  update-desc <id> \"Description\"          Change description");
     console.log("  create <goal_sol> \"Name\" \"Description\"  Create new campaign");
+    console.log("  update-fee-wallet                       Set fees to go to admin wallet");
+    console.log("  transfer-admin <pubkey>                 Transfer admin to new wallet");
     console.log("\nOptions:");
     console.log("  --keypair <path>   Path to Solana keypair JSON file (required for writes)");
     console.log("  --rpc <url>        RPC endpoint (default: devnet)");
@@ -236,6 +238,42 @@ async function main() {
     const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
     console.log(`TX: ${sig}`);
     console.log("Done!");
+    return;
+  }
+
+  if (cmd === "update-fee-wallet") {
+    // Set the fee wallet to the admin's own address so fees come to you
+    console.log(`Setting fee wallet to admin address: ${admin.publicKey.toBase58()}`);
+    const data = Buffer.concat([disc("update_fee_wallet"), admin.publicKey.toBuffer()]);
+    const tx = new Transaction().add({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: admin.publicKey, isSigner: true, isWritable: true },
+        { pubkey: cmPDA, isSigner: false, isWritable: true },
+      ],
+      data,
+    });
+    const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
+    console.log(`TX: ${sig}`);
+    console.log("All future fees will be sent to your admin wallet's jitoSOL ATA.");
+    return;
+  }
+
+  if (cmd === "transfer-admin") {
+    const newAdmin = new PublicKey(args[0]);
+    console.log(`Transferring admin to: ${newAdmin.toBase58()}`);
+    const data = Buffer.concat([disc("transfer_admin"), newAdmin.toBuffer()]);
+    const tx = new Transaction().add({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: admin.publicKey, isSigner: true, isWritable: true },
+        { pubkey: cmPDA, isSigner: false, isWritable: true },
+      ],
+      data,
+    });
+    const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
+    console.log(`TX: ${sig}`);
+    console.log("Admin transferred! The old keypair can no longer manage campaigns.");
     return;
   }
 
