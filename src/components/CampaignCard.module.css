@@ -1,0 +1,55 @@
+.card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #eeeeea;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  margin-bottom: 10px;
+}
+.card:hover {
+  transform: translateY(-1px);
+  border-color: #d0d0c8;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.title { font-size: 15px; font-weight: 700; }
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+.badge_Active { background: #e6f4ed; color: #1b7a4e; }
+.badge_Completed { background: #eae8fa; color: #4a3fa0; }
+.badge_Cancelled { background: #fff0e6; color: #c45a20; }
+.badge_Closed { background: #f0f0ec; color: #888; }
+.desc {
+  font-size: 12.5px;
+  color: #888;
+  margin: 4px 0 12px;
+  line-height: 1.55;
+}
+.progressBar {
+  height: 5px;
+  border-radius: 3px;
+  background: #edede8;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #b0b0a8;
+  margin-top: 7px;
+}

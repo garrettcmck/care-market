@@ -1,0 +1,45 @@
+.content {
+  padding-bottom: 20px;
+}
+.hiwWrap {
+  padding: 16px 20px 10px;
+}
+.sectionLabel {
+  padding: 8px 20px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #bbb;
+}
+.cardList {
+  padding: 0 20px;
+}
+.footer {
+  padding: 16px 20px 24px;
+  text-align: center;
+  font-size: 10px;
+  color: #ccc;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.loadingMsg {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+}
+.errorMsg {
+  margin: 12px 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fbe9e7;
+  color: #c62828;
+  font-size: 13px;
+}
+.emptyMsg {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #aaa;
+}
