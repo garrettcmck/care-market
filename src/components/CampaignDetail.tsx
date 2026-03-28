@@ -7,6 +7,7 @@ import { getJitosolRate } from "@/sdk/jupiter";
 import { fetchUserStake, UserStake } from "@/utils/accounts";
 import { findCampaignPDA } from "@/utils/constants";
 import { CampaignData, estimateYieldEarned, estimateWeeksLeft } from "./CampaignCard";
+import UpdateFeed from "./UpdateFeed";
 import styles from "./CampaignDetail.module.css";
 
 const APY = 0.075;
@@ -173,6 +174,8 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
           </>
         )}
       </div>
+
+      <UpdateFeed campaignId={campaign.id} />
     </div>
   );
 }

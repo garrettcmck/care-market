@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import HowItWorks from "@/components/HowItWorks";
 import CampaignCard, { CampaignData } from "@/components/CampaignCard";
 import CampaignDetail from "@/components/CampaignDetail";
+import WalletProfile from "@/components/WalletProfile";
 import { fetchCareMarketState, fetchAllCampaigns, Campaign } from "@/utils/accounts";
 import styles from "./page.module.css";
 
@@ -55,7 +56,7 @@ export default function HomePage() {
       ) : (
         <div className={styles.content}>
           <div className={styles.hiwWrap}><HowItWorks /></div>
-          {loading && <div className={styles.loadingMsg}>Loading campaigns from devnet...</div>}
+          {loading && <div className={styles.loadingMsg}>Loading campaigns...</div>}
           {error && <div className={styles.errorMsg}>{error}</div>}
           {!loading && active.length > 0 && (
             <><div className={styles.sectionLabel}>Active campaigns</div>
@@ -68,6 +69,7 @@ export default function HomePage() {
           {!loading && campaigns.length === 0 && !error && (
             <div className={styles.emptyMsg}>No campaigns yet</div>
           )}
+          {!loading && <WalletProfile campaignCount={campaigns.length} />}
         </div>
       )}
       <footer className={styles.footer}>Care Market — Lossless giving on Solana</footer>
