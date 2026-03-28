@@ -3,8 +3,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #eee;
-  background: #fff;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: background 0.3s, border-color 0.3s;
 }
 .logo {
   display: flex;
@@ -15,7 +16,7 @@
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: #0a7c5a;
+  background: var(--green);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,11 +25,33 @@
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: #1a1a2e;
+  color: var(--logo-text);
+}
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .walletBtn {
   font-size: 13px !important;
   height: 36px !important;
   border-radius: 20px !important;
-  background: #0a7c5a !important;
+  background: var(--green) !important;
+}
+.themeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+}
+.themeBtn:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card);
 }
