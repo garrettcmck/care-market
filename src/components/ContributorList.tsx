@@ -77,7 +77,7 @@ export default function ContributorList({ campaignPDA }: { campaignPDA: string }
           </div>
           <div className={styles.rowRight}>
             <div className={styles.amount}><SolIcon />{c.solDeposited.toFixed(2)}</div>
-            <div className={styles.yield}>+<SolIcon size={10} />{c.yieldEarnedSol.toFixed(4)} earned</div>
+            <div className={styles.yield}>+<SolIcon />{c.yieldEarnedSol.toFixed(4)} earned</div>
           </div>
         </div>
       ))}

@@ -1,6 +1,4 @@
-.wrap {
-  margin-bottom: 4px;
-}
+.wrap { margin-bottom: 4px; }
 .toggle {
   display: flex;
   align-items: center;
@@ -19,13 +17,8 @@
   letter-spacing: 0.8px;
   color: var(--text-muted);
 }
-.chevron {
-  color: var(--text-muted);
-  transition: transform 0.2s;
-}
-.chevronOpen {
-  transform: rotate(180deg);
-}
+.chevron { color: var(--text-muted); transition: transform 0.2s; }
+.chevronOpen { transform: rotate(180deg); }
 .steps {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -34,39 +27,28 @@
 }
 .step {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  padding: 12px;
+  padding: 16px 12px;
   border-radius: 10px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   transition: background 0.3s, border-color 0.3s;
 }
-.num {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: var(--green-bg);
-  color: var(--green-text);
-  font-size: 11px;
-  font-weight: 800;
+  color: var(--green);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-.stepContent {
-  flex: 1;
-  min-width: 0;
 }
 .stepTitle {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 2px;
-}
-.stepDesc {
-  font-size: 10px;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  text-align: center;
 }
