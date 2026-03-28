@@ -54,13 +54,14 @@ export default function ProtocolStats({ campaigns }: { campaigns: CampaignData[]
             <div className={styles.sub}>Total SOL deployed</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.val}>{totalDonors || activeDonors}</div>
-            <div className={styles.sub}>Total donors</div>
-          </div>
-          <div className={styles.stat}>
             <div className={styles.val}>{activeSol.toFixed(2)}</div>
             {solPrice && <div className={styles.usd}>${(activeSol * solPrice).toFixed(2)}</div>}
             <div className={styles.sub}>Active SOL staked</div>
+          </div>
+          <div className={styles.stat}>
+            <div className={styles.val}>{totalDonors || activeDonors}</div>
+            <div className={styles.subActive}>{activeDonors} active</div>
+            <div className={styles.sub}>Total donors</div>
           </div>
           <div className={styles.stat}>
             <div className={styles.val}>{completedCampaigns}</div>
