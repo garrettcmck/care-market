@@ -1,13 +1,13 @@
 "use client";
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import {
   JITOSOL_MINT, FEE_JITOSOL_ATA,
   findCareMarketPDA, findCampaignPDA, findVaultPDA, findUserStakePDA,
 } from "@/utils/constants";
-import { quoteSolToJitosol, quoteJitosolToSol, getSwapInstructions, loadALTs } from "@/sdk/jupiter";
+import { quoteSolToJitosol, quoteJitosolToSol, getSwapInstructions } from "@/sdk/jupiter";
 import { createDonateIx, createEarlyWithdrawIx, createClaimIx } from "@/sdk/instructions";
 
 export function useCareMarket() {
@@ -17,14 +17,13 @@ export function useCareMarket() {
   const [error, setError] = useState<string | null>(null);
   const [txSig, setTxSig] = useState<string | null>(null);
 
-  const sendTx = useCallback(async (instructions: any[], altAddresses: string[]): Promise<string> => {
+  const sendTx = useCallback(async (instructions: any[]): Promise<string> => {
     if (!wallet.publicKey || !wallet.signTransaction) throw new Error("Wallet not connected");
-    const alts = await loadALTs(connection, altAddresses);
     const { blockhash } = await connection.getLatestBlockhash();
-    const msg = new TransactionMessage({
-      payerKey: wallet.publicKey, recentBlockhash: blockhash, instructions,
-    }).compileToV0Message(alts);
-    const tx = new VersionedTransaction(msg);
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = wallet.publicKey;
+    instructions.forEach((ix: any) => tx.add(ix));
     const signed = await wallet.signTransaction(tx);
     const sig = await connection.sendRawTransaction(signed.serialize());
     await connection.confirmTransaction(sig, "confirmed");
@@ -66,7 +65,7 @@ export function useCareMarket() {
         ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
         donateIx,
       ];
-      const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
+      const sig = await sendTx(allIxs);
       setTxSig(sig);
       return sig;
     } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
@@ -95,7 +94,7 @@ export function useCareMarket() {
         withdrawIx, ...jupIxs.setupInstructions, jupIxs.swapInstruction,
         ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
       ];
-      const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
+      const sig = await sendTx(allIxs);
       setTxSig(sig);
       return sig;
     } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
@@ -118,7 +117,7 @@ export function useCareMarket() {
         claimIx, ...jupIxs.setupInstructions, jupIxs.swapInstruction,
         ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
       ];
-      const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
+      const sig = await sendTx(allIxs);
       setTxSig(sig);
       return sig;
     } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
