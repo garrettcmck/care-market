@@ -6,6 +6,7 @@ import { fetchAllCampaigns, fetchUserStake } from "@/utils/accounts";
 import { findCampaignPDA, PROGRAM_ID } from "@/utils/constants";
 import { getJitosolRate } from "@/sdk/jupiter";
 import { CampaignData } from "./CampaignCard";
+import SolIcon from "./SolIcon";
 import styles from "./WalletProfile.module.css";
 
 interface UserStats {
@@ -165,10 +166,10 @@ export default function WalletProfile({
               <>
                 <div className={styles.address}>{wallet.publicKey!.toBase58().slice(0, 4)}...{wallet.publicKey!.toBase58().slice(-4)}</div>
                 <div className={styles.grid}>
-                  <div className={styles.stat}><div className={styles.val}>{stats.totalSolDonated.toFixed(2)}</div><div className={styles.sub}>SOL donated (all time)</div></div>
-                  <div className={styles.stat}><div className={styles.val}>{stats.activeSolStaked.toFixed(2)}</div><div className={styles.sub}>SOL in active campaigns</div></div>
+                  <div className={styles.stat}><div className={styles.val}><SolIcon />{stats.totalSolDonated.toFixed(2)}</div><div className={styles.sub}>SOL donated (all time)</div></div>
+                  <div className={styles.stat}><div className={styles.val}><SolIcon />{stats.activeSolStaked.toFixed(2)}</div><div className={styles.sub}>SOL in active campaigns</div></div>
                   <div className={styles.stat}><div className={styles.val}>{stats.activeCampaigns}</div><div className={styles.sub}>Active campaign{stats.activeCampaigns !== 1 ? "s" : ""}</div></div>
-                  <div className={styles.stat}><div className={styles.val}>{stats.yieldEarnedSol.toFixed(4)}</div><div className={styles.sub}>SOL earned for charity</div></div>
+                  <div className={styles.stat}><div className={styles.val}><SolIcon />{stats.yieldEarnedSol.toFixed(4)}</div><div className={styles.sub}>SOL earned for charity</div></div>
                 </div>
               </>
             )}
@@ -191,7 +192,7 @@ export default function WalletProfile({
                           return (
                             <div key={mc.id} className={styles.mcRow} onClick={() => camp && onSelectCampaign(camp)}>
                               <div className={styles.mcName}>{mc.name}</div>
-                              <div className={styles.mcAmount}>{mc.solDeposited.toFixed(2)} SOL</div>
+                              <div className={styles.mcAmount}><SolIcon />{mc.solDeposited.toFixed(2)}</div>
                             </div>
                           );
                         })}
@@ -203,7 +204,7 @@ export default function WalletProfile({
                         {myCampaigns.filter(c => c.status !== "Active").map(mc => (
                           <div key={mc.id} className={`${styles.mcRow} ${styles.mcRowInactive}`}>
                             <div className={styles.mcName}>{mc.name} <span className={styles.mcBadge}>{mc.status}</span></div>
-                            <div className={styles.mcAmount}>{mc.solDeposited.toFixed(2)} SOL</div>
+                            <div className={styles.mcAmount}><SolIcon />{mc.solDeposited.toFixed(2)}</div>
                           </div>
                         ))}
                       </div>
@@ -243,7 +244,7 @@ export default function WalletProfile({
                           {entry.wallet.slice(0, 4)}...{entry.wallet.slice(-4)}
                           {isYou && <span className={styles.lbYouTag}>You</span>}
                         </div>
-                        <div className={styles.lbAmount}>{entry.totalSol.toFixed(2)} SOL</div>
+                        <div className={styles.lbAmount}><SolIcon />{entry.totalSol.toFixed(2)}</div>
                       </div>
                     );
                   })

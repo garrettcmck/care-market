@@ -9,6 +9,7 @@ import { findCampaignPDA } from "@/utils/constants";
 import { CampaignData, estimateYieldEarned, estimateWeeksLeft } from "./CampaignCard";
 import UpdateFeed from "./UpdateFeed";
 import ContributorList from "./ContributorList";
+import SolIcon from "./SolIcon";
 import styles from "./CampaignDetail.module.css";
 
 const APY = 0.075;
@@ -76,7 +77,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
       {/* Progress toward YIELD GOAL, not stake amount */}
       <div className={styles.progress}>
         <div className={styles.progressTop}>
-          <span className={styles.pct}>{yieldEarned.toFixed(2)} / {campaign.goalSol} SOL</span>
+          <span className={styles.pct}><SolIcon />{yieldEarned.toFixed(2)} / {campaign.goalSol}</span>
           <span className={`${styles.badge} ${styles[`badge_${campaign.status}`]}`}>{campaign.status}</span>
         </div>
         <div className={styles.progressBar}>
@@ -90,7 +91,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
 
       <div className={styles.statGrid}>
         <div className={styles.stat}>
-          <div className={styles.statVal}>{campaign.totalStaked.toFixed(1)}</div>
+          <div className={styles.statVal}><SolIcon />{campaign.totalStaked.toFixed(1)}</div>
           <div className={styles.statLabel}>SOL staked</div>
         </div>
         <div className={styles.stat}>
@@ -123,13 +124,13 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                   <span className={styles.inputUnit}>SOL</span>
                 </div>
                 <div className={styles.fees}>
-                  <div className={styles.feeRow}><span>Fee (0.01%)</span><span>{fee.toFixed(6)} SOL</span></div>
+                  <div className={styles.feeRow}><span>Fee (0.01%)</span><span><SolIcon />{fee.toFixed(6)}</span></div>
                   {daysReduced > 0 && (
                     <div className={styles.feeRow}><span>Time you save</span><span className={styles.green}>{daysReduced >= 7 ? `${weeksReduced} week${weeksReduced !== 1 ? "s" : ""}` : `${daysReduced} day${daysReduced !== 1 ? "s" : ""}`}</span></div>
                   )}
                   <div className={`${styles.feeRow} ${styles.feeDivider}`}>
                     <span className={styles.bold}>You get back</span>
-                    <span className={`${styles.green} ${styles.bold}`}>{sol.toFixed(2)} SOL</span>
+                    <span className={`${styles.green} ${styles.bold}`}><SolIcon />{sol.toFixed(2)}</span>
                   </div>
                 </div>
                 <button className={styles.primaryBtn} onClick={() => donate(campaign.id, sol)} disabled={loading || sol <= 0}>
@@ -164,9 +165,9 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
             ) : (
               <>
                 <div className={styles.manageBox}>
-                  <div className={styles.manageRow}><span>Your stake</span><span className={styles.bold}>{(Number(userStake.solDeposited) / LAMPORTS_PER_SOL).toFixed(2)} SOL</span></div>
+                  <div className={styles.manageRow}><span>Your stake</span><span className={styles.bold}><SolIcon />{(Number(userStake.solDeposited) / LAMPORTS_PER_SOL).toFixed(2)}</span></div>
                   <div className={styles.manageRow}><span>jitoSOL held</span><span className={styles.bold}>{(Number(userStake.jitosolShare) / 1e9).toFixed(4)} jitoSOL</span></div>
-                  <div className={styles.manageRow}><span>Current value</span><span className={`${styles.bold} ${styles.green}`}>{(Number(userStake.jitosolShare) / 1e9 * rate).toFixed(2)} SOL</span></div>
+                  <div className={styles.manageRow}><span>Current value</span><span className={`${styles.bold} ${styles.green}`}><SolIcon />{(Number(userStake.jitosolShare) / 1e9 * rate).toFixed(2)}</span></div>
                 </div>
                 {campaign.status === "Active" && (
                   <button className={styles.withdrawBtn} onClick={() => earlyWithdraw(campaign.id, Number(userStake.jitosolShare))} disabled={loading}>

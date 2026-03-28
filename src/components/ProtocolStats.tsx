@@ -4,6 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { PROGRAM_ID } from "@/utils/constants";
 import { CampaignData } from "./CampaignCard";
+import SolIcon from "./SolIcon";
 import styles from "./ProtocolStats.module.css";
 
 export default function ProtocolStats({ campaigns }: { campaigns: CampaignData[] }) {
@@ -49,19 +50,26 @@ export default function ProtocolStats({ campaigns }: { campaigns: CampaignData[]
       {open && (
         <div className={styles.grid}>
           <div className={styles.stat}>
-            <div className={styles.val}>{totalSolDeployed.toFixed(2)}</div>
+            <div className={styles.val}><SolIcon />{totalSolDeployed.toFixed(2)}</div>
             {solPrice && <div className={styles.usd}>${(totalSolDeployed * solPrice).toFixed(2)}</div>}
             <div className={styles.sub}>Total SOL deployed</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.val}>{activeSol.toFixed(2)}</div>
+            <div className={styles.val}><SolIcon />{activeSol.toFixed(2)}</div>
             {solPrice && <div className={styles.usd}>${(activeSol * solPrice).toFixed(2)}</div>}
             <div className={styles.sub}>Active SOL staked</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.val}>{totalDonors || activeDonors}</div>
-            <div className={styles.subActive}>{activeDonors} active</div>
-            <div className={styles.sub}>Total donors</div>
+            <div className={styles.donorSplit}>
+              <div className={styles.donorHalf}>
+                <div className={styles.val}>{totalDonors || activeDonors}</div>
+                <div className={styles.sub}>Total donors</div>
+              </div>
+              <div className={styles.donorHalf}>
+                <div className={styles.valGreen}>{activeDonors}</div>
+                <div className={styles.sub}>Active donors</div>
+              </div>
+            </div>
           </div>
           <div className={styles.stat}>
             <div className={styles.val}>{completedCampaigns}</div>

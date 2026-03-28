@@ -4,6 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { PROGRAM_ID } from "@/utils/constants";
 import { getJitosolRate } from "@/sdk/jupiter";
+import SolIcon from "./SolIcon";
 import styles from "./ContributorList.module.css";
 
 interface Contributor {
@@ -75,8 +76,8 @@ export default function ContributorList({ campaignPDA }: { campaignPDA: string }
             </div>
           </div>
           <div className={styles.rowRight}>
-            <div className={styles.amount}>{c.solDeposited.toFixed(2)} SOL</div>
-            <div className={styles.yield}>+{c.yieldEarnedSol.toFixed(4)} SOL earned</div>
+            <div className={styles.amount}><SolIcon />{c.solDeposited.toFixed(2)}</div>
+            <div className={styles.yield}>+<SolIcon size={10} />{c.yieldEarnedSol.toFixed(4)} earned</div>
           </div>
         </div>
       ))}
