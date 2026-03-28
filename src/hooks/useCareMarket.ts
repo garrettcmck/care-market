@@ -69,7 +69,7 @@ export function useCareMarket() {
       const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
       setTxSig(sig);
       return sig;
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
   }, [wallet, connection, sendTx]);
 
   const earlyWithdraw = useCallback(async (campaignId: number, jitosolShare: number) => {
@@ -98,7 +98,7 @@ export function useCareMarket() {
       const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
       setTxSig(sig);
       return sig;
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
   }, [wallet, sendTx]);
 
   const claim = useCallback(async (campaignId: number, jitosolShare: number) => {
@@ -121,7 +121,7 @@ export function useCareMarket() {
       const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
       setTxSig(sig);
       return sig;
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
   }, [wallet, sendTx]);
 
   return { donate, earlyWithdraw, claim, loading, error, txSig, setError };
