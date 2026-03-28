@@ -52,6 +52,13 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
   const totalWeeklyYield = campaign.totalStaked * APY / 52;
   const remaining = Math.max(0, campaign.goalSol - yieldEarned);
 
+  // Time reduction: weeks with current stakers vs weeks with this user added
+  const weeksWithout = totalWeeklyYield > 0 ? Math.ceil(remaining / totalWeeklyYield) : Infinity;
+  const newTotalWeekly = (campaign.totalStaked + sol) * APY / 52;
+  const weeksWith = newTotalWeekly > 0 ? Math.ceil(remaining / newTotalWeekly) : Infinity;
+  const weeksReduced = weeksWithout < 99999 && weeksWith < 99999 ? Math.max(0, weeksWithout - weeksWith) : 0;
+  const daysReduced = weeksReduced * 7;
+
   return (
     <div>
       <div className={styles.back} onClick={onBack}>
@@ -119,6 +126,9 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                   <div className={styles.feeRow}><span>Fee (0.01%)</span><span>{fee.toFixed(6)} SOL</span></div>
                   <div className={styles.feeRow}><span>Your weekly yield</span><span className={styles.green}>{newWeeklyYield.toFixed(4)} SOL</span></div>
                   <div className={styles.feeRow}><span>Remaining to goal</span><span>{remaining.toFixed(2)} SOL</span></div>
+                  {daysReduced > 0 && (
+                    <div className={styles.feeRow}><span>Time you save</span><span className={styles.green}>{daysReduced >= 7 ? `${weeksReduced} week${weeksReduced !== 1 ? "s" : ""}` : `${daysReduced} day${daysReduced !== 1 ? "s" : ""}`}</span></div>
+                  )}
                   <div className={`${styles.feeRow} ${styles.feeDivider}`}>
                     <span className={styles.bold}>You get back</span>
                     <span className={`${styles.green} ${styles.bold}`}>{sol.toFixed(2)} SOL</span>
@@ -127,6 +137,11 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                 <button className={styles.primaryBtn} onClick={() => donate(campaign.id, sol)} disabled={loading || sol <= 0}>
                   {loading ? "Swapping SOL to jitoSOL..." : `Stake ${sol} SOL`}
                 </button>
+                {txSig && daysReduced > 0 && (
+                  <div className={styles.impactMsg}>
+                    You just brought the goal {daysReduced >= 7 ? `${weeksReduced} week${weeksReduced !== 1 ? "s" : ""}` : `${daysReduced} day${daysReduced !== 1 ? "s" : ""}`} closer!
+                  </div>
+                )}
                 <p className={styles.note}>Your SOL earns yield for the charity, then returns to you in full</p>
               </>
             )}
