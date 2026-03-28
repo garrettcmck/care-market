@@ -1,52 +1,47 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import styles from "./HowItWorks.module.css";
 
-const steps = [
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a7c5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-    title: "Stake SOL",
-    sub: "Swapped to jitoSOL, earning ~7.5% APY",
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a7c5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-    title: "Yield funds charity",
-    sub: "Rewards accumulate toward the goal",
-  },
-  {
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a7c5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <path d="M16 14h.01" />
-        <path d="M2 10h20" />
-      </svg>
-    ),
-    title: "Get SOL back",
-    sub: "Full deposit returned when goal is met",
-  },
-];
-
 export default function HowItWorks() {
+  const [open, setOpen] = useState(true);
+
   return (
-    <div className={styles.container}>
-      <p className={styles.title}>How it works</p>
-      <div className={styles.grid}>
-        {steps.map((s, i) => (
-          <div key={i} className={styles.step}>
-            <div className={styles.icon}>{s.icon}</div>
-            <p className={styles.stepTitle}>{s.title}</p>
-            <p className={styles.stepSub}>{s.sub}</p>
+    <div className={styles.wrap}>
+      <button className={styles.toggle} onClick={() => setOpen(!open)}>
+        <span className={styles.toggleText}>How it works</span>
+        <svg
+          width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`}
+        >
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      {open && (
+        <div className={styles.steps}>
+          <div className={styles.step}>
+            <div className={styles.num}>1</div>
+            <div className={styles.stepContent}>
+              <div className={styles.stepTitle}>Stake SOL</div>
+              <div className={styles.stepDesc}>Swapped to jitoSOL earning ~7.5% APY</div>
+            </div>
           </div>
-        ))}
-      </div>
+          <div className={styles.step}>
+            <div className={styles.num}>2</div>
+            <div className={styles.stepContent}>
+              <div className={styles.stepTitle}>Yield funds charity</div>
+              <div className={styles.stepDesc}>Rewards accumulate toward the goal</div>
+            </div>
+          </div>
+          <div className={styles.step}>
+            <div className={styles.num}>3</div>
+            <div className={styles.stepContent}>
+              <div className={styles.stepTitle}>Get SOL back</div>
+              <div className={styles.stepDesc}>Full deposit returned when goal is met</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
