@@ -8,6 +8,7 @@ import { fetchUserStake, UserStake } from "@/utils/accounts";
 import { findCampaignPDA } from "@/utils/constants";
 import { CampaignData, estimateYieldEarned, estimateWeeksLeft } from "./CampaignCard";
 import UpdateFeed from "./UpdateFeed";
+import ContributorList from "./ContributorList";
 import styles from "./CampaignDetail.module.css";
 
 const APY = 0.075;
@@ -175,6 +176,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
         )}
       </div>
 
+      <ContributorList campaignPDA={findCampaignPDA(campaign.id)[0].toBase58()} />
       <UpdateFeed campaignId={campaign.id} />
     </div>
   );

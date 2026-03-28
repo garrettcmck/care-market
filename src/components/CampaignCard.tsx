@@ -50,22 +50,31 @@ export default function CampaignCard({ campaign, onClick }: { campaign: Campaign
         <span className={`${styles.badge} ${styles[`badge_${campaign.status}`]}`}>{campaign.status}</span>
       </div>
       <p className={styles.desc}>{campaign.desc}</p>
+      <div className={styles.cardStats}>
+        <div className={styles.cardStat}>
+          <div className={styles.cardStatVal}>{campaign.totalStaked.toFixed(2)}</div>
+          <div className={styles.cardStatSub}>SOL staked</div>
+        </div>
+        <div className={styles.cardStat}>
+          <div className={styles.cardStatVal}>{campaign.contributors}</div>
+          <div className={styles.cardStatSub}>Contributors</div>
+        </div>
+        <div className={styles.cardStat}>
+          <div className={styles.cardStatVal}>{campaign.status === "Completed" ? "Done" : weeks < 9999 ? `~${weeks}w` : "—"}</div>
+          <div className={styles.cardStatSub}>{campaign.status === "Completed" ? "Goal reached" : "Est. remaining"}</div>
+        </div>
+      </div>
       <div className={styles.progressBar}>
         <div
           className={styles.progressFill}
           style={{
             width: `${progressPct}%`,
-            background: progressPct >= 100 ? "#2d8659" : "#0a7c5a",
+            background: progressPct >= 100 ? "var(--green)" : "var(--green)",
           }}
         />
       </div>
-      <div className={styles.stats}>
-        <span>{yieldEarned.toFixed(2)} / {campaign.goalSol} SOL earned</span>
-        <span>{campaign.status === "Completed" ? "Goal reached" : weeks < 9999 ? `~${weeks}w left` : "Needs stakes"}</span>
-      </div>
-      <div className={styles.substats}>
-        <span>{campaign.totalStaked.toFixed(1)} SOL staked</span>
-        <span>{campaign.contributors} contributors</span>
+      <div className={styles.yieldLine}>
+        <span>{yieldEarned.toFixed(4)} / {campaign.goalSol} SOL earned</span>
       </div>
     </div>
   );
