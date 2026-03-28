@@ -6,6 +6,7 @@ export interface JupiterQuote {
   outputMint: string;
   inAmount: string;
   outAmount: string;
+  otherAmountThreshold: string;
   priceImpactPct: string;
   slippageBps: number;
   routePlan: any[];

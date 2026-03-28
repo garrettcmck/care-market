@@ -46,7 +46,8 @@ export function useCareMarket() {
       }
 
       const quote = await quoteSolToJitosol(lamports);
-      const jitosolAmount = BigInt(quote.outAmount);
+      // Use threshold amount (accounts for slippage) not the optimistic outAmount
+      const jitosolAmount = BigInt(quote.otherAmountThreshold || quote.outAmount);
       const jupIxs = await getSwapInstructions(quote, user, userJitoAta);
 
       const [careMarketPDA] = findCareMarketPDA();
