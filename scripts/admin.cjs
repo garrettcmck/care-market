@@ -19,9 +19,9 @@ const { createHash } = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const PROGRAM_ID = new PublicKey("3CQ9sfki5SgF4pdL7qZgFWGzf4h3HSfgNXwWS5usbUsz");
-const JITOSOL_MINT = new PublicKey("Fc45LwrnMeyrvADyescSCKotE47CUE8SzjARCXLGDvKm");
-const DEFAULT_RPC = "https://api.devnet.solana.com";
+const PROGRAM_ID = new PublicKey("Cb1uEFgjbGeWiEMRCTA2SXzbB3jrnK58yAkwPGPZbL84");
+const JITOSOL_MINT = new PublicKey("J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn");
+const DEFAULT_RPC = "https://api.mainnet-beta.solana.com";
 
 function disc(name) { return createHash("sha256").update(`global:${name}`).digest().subarray(0, 8); }
 function findPDA(seeds) { return PublicKey.findProgramAddressSync(seeds, PROGRAM_ID); }
