@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import {
   JITOSOL_MINT, FEE_JITOSOL_ATA,
   findCareMarketPDA, findCampaignPDA, findVaultPDA, findUserStakePDA,
@@ -36,9 +36,17 @@ export function useCareMarket() {
     try {
       const user = wallet.publicKey!;
       const lamports = Math.floor(solAmount * LAMPORTS_PER_SOL);
+      const userJitoAta = getAssociatedTokenAddressSync(JITOSOL_MINT, user);
+
+      // Check if user has a jitoSOL ATA, create if not
+      const prefixIxs: any[] = [];
+      const ataInfo = await connection.getAccountInfo(userJitoAta);
+      if (!ataInfo) {
+        prefixIxs.push(createAssociatedTokenAccountInstruction(user, userJitoAta, user, JITOSOL_MINT));
+      }
+
       const quote = await quoteSolToJitosol(lamports);
       const jitosolAmount = BigInt(quote.outAmount);
-      const userJitoAta = getAssociatedTokenAddressSync(JITOSOL_MINT, user);
       const jupIxs = await getSwapInstructions(quote, user, userJitoAta);
 
       const [careMarketPDA] = findCareMarketPDA();
@@ -53,6 +61,7 @@ export function useCareMarket() {
       );
 
       const allIxs = [
+        ...prefixIxs,
         ...jupIxs.setupInstructions, jupIxs.swapInstruction,
         ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
         donateIx,
@@ -61,7 +70,7 @@ export function useCareMarket() {
       setTxSig(sig);
       return sig;
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
-  }, [wallet, sendTx]);
+  }, [wallet, connection, sendTx]);
 
   const earlyWithdraw = useCallback(async (campaignId: number, jitosolShare: number) => {
     setLoading(true); setError(null); setTxSig(null);
