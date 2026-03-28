@@ -117,8 +117,11 @@ export function deserializeCampaign(data: Buffer, pda: PublicKey, campaignId: nu
   [id, offset] = readU64(data, offset);
   [careMarket, offset] = readPublicKey(data, offset);
   [charityWallet, offset] = readPublicKey(data, offset);
+  // Fixed-size fields: name = 4+64 bytes, desc = 4+256 bytes (Pinocchio v3 layout)
   [charityName, offset] = readString(data, offset);
+  offset = 84 + 64; // skip to end of fixed name field (offset 148)
   [description, offset] = readString(data, offset);
+  offset = 152 + 256; // skip to end of fixed desc field (offset 408)
   [goalLamports, offset] = readU64(data, offset);
   [totalSolDeposited, offset] = readU64(data, offset);
   [totalJitosolInVault, offset] = readU64(data, offset);
