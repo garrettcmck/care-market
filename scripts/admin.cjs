@@ -14,7 +14,7 @@
 // Optional: --rpc <url> to use a custom RPC (default: devnet)
 
 const { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction, LAMPORTS_PER_SOL } = require("@solana/web3.js");
-const { TOKEN_PROGRAM_ID } = require("@solana/spl-token");
+const { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } = require("@solana/spl-token");
 const { createHash } = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -93,6 +93,7 @@ async function main() {
     console.log("  update-name <id> \"Name\"                 Change campaign name");
     console.log("  update-desc <id> \"Description\"          Change description");
     console.log("  create <goal_sol> \"Name\" \"Description\"  Create new campaign");
+    console.log("  complete <id>                           Complete campaign (extract yield)");
     console.log("  update-fee-wallet                       Set fees to go to admin wallet");
     console.log("  transfer-admin <pubkey>                 Transfer admin to new wallet");
     console.log("\nOptions:");
@@ -240,6 +241,73 @@ async function main() {
     const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
     console.log(`TX: ${sig}`);
     console.log("Done!");
+    return;
+  }
+
+  if (cmd === "complete") {
+    const campaignId = parseInt(args[0]);
+    const idBuf = Buffer.alloc(8); idBuf.writeBigUInt64LE(BigInt(campaignId));
+    const [campPDA] = findPDA([Buffer.from("campaign"), idBuf]);
+    const [vaultPDA] = findPDA([Buffer.from("vault"), campPDA.toBuffer()]);
+
+    // Read campaign state
+    const campInfo = await conn.getAccountInfo(campPDA);
+    if (!campInfo) { console.log("Campaign not found"); return; }
+    const cd = Buffer.from(campInfo.data);
+    const goal = Number(cd.readBigUInt64LE(408)) / LAMPORTS_PER_SOL;
+    const totalJitosol = Number(cd.readBigUInt64LE(424));
+    const totalSolDeposited = Number(cd.readBigUInt64LE(416));
+    const status = ["Active","Completed","Cancelled","Closed"][cd[436]];
+
+    if (status !== "Active") { console.log(`Campaign is ${status}, not Active`); return; }
+
+    // Read vault balance
+    const vaultBalance = await conn.getTokenAccountBalance(vaultPDA);
+    const vaultJitosol = Number(vaultBalance.value.amount);
+
+    // Calculate yield: vault jitoSOL - tracked deposits jitoSOL = yield
+    const yieldJitosol = vaultJitosol - totalJitosol;
+
+    console.log(`Campaign #${campaignId}:`);
+    console.log(`  Goal: ${goal} SOL`);
+    console.log(`  Total SOL deposited: ${totalSolDeposited / 1e9} SOL`);
+    console.log(`  Vault jitoSOL: ${vaultJitosol / 1e9}`);
+    console.log(`  Tracked jitoSOL: ${totalJitosol / 1e9}`);
+    console.log(`  Yield earned: ${yieldJitosol / 1e9} jitoSOL`);
+    console.log("");
+
+    if (yieldJitosol <= 0) {
+      console.log("No yield earned yet. Campaign cannot be completed.");
+      return;
+    }
+
+    // Get admin's jitoSOL ATA
+    const adminJitoAta = getAssociatedTokenAddressSync(JITOSOL_MINT, admin.publicKey);
+
+    // The yield jitoSOL to extract (all of it — admin swaps to SOL and sends to charity)
+    const yieldBuf = Buffer.alloc(8);
+    yieldBuf.writeBigUInt64LE(BigInt(yieldJitosol));
+
+    console.log(`Completing campaign — extracting ${yieldJitosol / 1e9} jitoSOL yield to admin ATA`);
+
+    const SYSVAR_CLOCK = new PublicKey("SysvarC1ock11111111111111111111111111111111");
+    const tx = new Transaction().add({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: admin.publicKey, isSigner: true, isWritable: true },
+        { pubkey: cmPDA, isSigner: false, isWritable: false },
+        { pubkey: campPDA, isSigner: false, isWritable: true },
+        { pubkey: vaultPDA, isSigner: false, isWritable: true },
+        { pubkey: adminJitoAta, isSigner: false, isWritable: true },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_CLOCK, isSigner: false, isWritable: false },
+      ],
+      data: Buffer.concat([disc("complete_campaign"), yieldBuf]),
+    });
+    const sig = await sendAndConfirmTransaction(conn, tx, [admin]);
+    console.log(`TX: ${sig}`);
+    console.log("Campaign completed! Users can now claim their SOL back (no fee).");
+    console.log("Yield jitoSOL is in your admin ATA — swap to SOL on Jupiter and send to charity.");
     return;
   }
 
