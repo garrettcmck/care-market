@@ -17,7 +17,6 @@ export async function quoteSolToJitosol(lamports: number, slippageBps = 50): Pro
     outputMint: JITOSOL_MINT.toBase58(),
     amount: lamports.toString(),
     slippageBps: slippageBps.toString(),
-    asLegacyTransaction: "true",
   });
   const res = await fetch(`${JUPITER_QUOTE_API}/quote?${params}`);
   if (!res.ok) throw new Error(`Jupiter quote failed: ${res.statusText}`);
@@ -30,7 +29,6 @@ export async function quoteJitosolToSol(amount: number, slippageBps = 50): Promi
     outputMint: SOL_MINT.toBase58(),
     amount: amount.toString(),
     slippageBps: slippageBps.toString(),
-    asLegacyTransaction: "true",
   });
   const res = await fetch(`${JUPITER_QUOTE_API}/quote?${params}`);
   if (!res.ok) throw new Error(`Jupiter quote failed: ${res.statusText}`);
@@ -41,7 +39,6 @@ export async function getSwapInstructions(quote: JupiterQuote, userPubkey: Publi
   const body: any = {
     quoteResponse: quote,
     userPublicKey: userPubkey.toBase58(),
-    asLegacyTransaction: true,
   };
   if (destinationAta) body.destinationTokenAccount = destinationAta.toBase58();
 
