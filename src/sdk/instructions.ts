@@ -1,4 +1,4 @@
-import { PublicKey, TransactionInstruction, SystemProgram } from "@solana/web3.js";
+import { PublicKey, TransactionInstruction, SystemProgram, SYSVAR_RENT_PUBKEY, SYSVAR_CLOCK_PUBKEY } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { createHash } from "crypto";
 import { PROGRAM_ID } from "@/utils/constants";
@@ -26,6 +26,8 @@ export function createDonateIx(
       { pubkey: userStake, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
     ],
     data: Buffer.concat([disc("donate"), solBuf, jitoBuf]),
   });
@@ -89,6 +91,7 @@ export function createCompleteCampaignIx(
       { pubkey: charityWallet, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
     ],
     data: Buffer.concat([disc("complete_campaign"), buf]),
   });

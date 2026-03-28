@@ -79,6 +79,7 @@ async function main() {
           { pubkey: admin.publicKey, isSigner: true, isWritable: true },
           { pubkey: cmPDA, isSigner: false, isWritable: true },
           { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+          { pubkey: new PublicKey("SysvarRent111111111111111111111111111111111"), isSigner: false, isWritable: false },
         ],
         data,
       });

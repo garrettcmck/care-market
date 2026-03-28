@@ -231,6 +231,8 @@ async function main() {
         { pubkey: JITOSOL_MINT, isSigner: false, isWritable: false },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: new PublicKey("SysvarRent111111111111111111111111111111111"), isSigner: false, isWritable: false },
+        { pubkey: new PublicKey("SysvarC1ock11111111111111111111111111111111"), isSigner: false, isWritable: false },
       ],
       data: Buffer.concat([disc("create_campaign"), charityWallet.publicKey.toBuffer(), nl, nm, dl, ds, gl]),
     });
