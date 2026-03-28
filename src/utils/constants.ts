@@ -8,7 +8,7 @@ export const JUPITER_QUOTE_API = "https://quote-api.jup.ag/v6";
 export const FEE_WALLET = new PublicKey("9RYCn13NH2NC5ADt681VVpk5rcRL4jYm3zrcgojdqvhA");
 export const FEE_JITOSOL_ATA = new PublicKey("DJf1BLj5SEQrjVhybBBQYDjS2Mh6mB5JoFKz5uqgrgd3");
 
-export const RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
+export const RPC_ENDPOINT = "https://mainnet.helius-rpc.com/?api-key=ba8baf7e-88d6-4512-bb03-175b0dc9ff33";
 
 export function findCareMarketPDA(): [PublicKey, number] {
   return PublicKey.findProgramAddressSync([Buffer.from("care_market")], PROGRAM_ID);
