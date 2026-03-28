@@ -83,24 +83,25 @@ export function useCareMarket() {
       const [userStakePDA] = findUserStakePDA(user, campaignPDA);
       const userJitoAta = getAssociatedTokenAddressSync(JITOSOL_MINT, user);
 
+      // Check if user has a jitoSOL ATA, create if not
+      const prefixIxs: any[] = [];
+      const ataInfo = await connection.getAccountInfo(userJitoAta);
+      if (!ataInfo) {
+        prefixIxs.push(createAssociatedTokenAccountInstruction(user, userJitoAta, user, JITOSOL_MINT));
+      }
+
       const withdrawIx = createEarlyWithdrawIx(
         user, careMarketPDA, campaignPDA, userStakePDA,
         vaultPDA, userJitoAta, FEE_JITOSOL_ATA,
       );
 
-      const afterFee = Math.floor(jitosolShare * 99 / 100);
-      const quote = await quoteJitosolToSol(afterFee);
-      const jupIxs = await getSwapInstructions(quote, user);
-
-      const allIxs = [
-        withdrawIx, ...jupIxs.setupInstructions, jupIxs.swapInstruction,
-        ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
-      ];
-      const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
+      // Just withdraw jitoSOL — user can swap to SOL on Jupiter afterwards
+      const allIxs = [...prefixIxs, withdrawIx];
+      const sig = await sendTx(allIxs, []);
       setTxSig(sig);
       return sig;
     } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
-  }, [wallet, sendTx]);
+  }, [wallet, connection, sendTx]);
 
   const claim = useCallback(async (campaignId: number, jitosolShare: number) => {
     setLoading(true); setError(null); setTxSig(null);
@@ -111,19 +112,22 @@ export function useCareMarket() {
       const [userStakePDA] = findUserStakePDA(user, campaignPDA);
       const userJitoAta = getAssociatedTokenAddressSync(JITOSOL_MINT, user);
 
-      const claimIx = createClaimIx(user, campaignPDA, userStakePDA, vaultPDA, userJitoAta);
-      const quote = await quoteJitosolToSol(jitosolShare);
-      const jupIxs = await getSwapInstructions(quote, user);
+      // Check if user has a jitoSOL ATA, create if not
+      const prefixIxs: any[] = [];
+      const ataInfo = await connection.getAccountInfo(userJitoAta);
+      if (!ataInfo) {
+        prefixIxs.push(createAssociatedTokenAccountInstruction(user, userJitoAta, user, JITOSOL_MINT));
+      }
 
-      const allIxs = [
-        claimIx, ...jupIxs.setupInstructions, jupIxs.swapInstruction,
-        ...(jupIxs.cleanupInstruction ? [jupIxs.cleanupInstruction] : []),
-      ];
-      const sig = await sendTx(allIxs, jupIxs.addressLookupTableAddresses);
+      const claimIx = createClaimIx(user, campaignPDA, userStakePDA, vaultPDA, userJitoAta);
+
+      // Just claim jitoSOL — user can swap to SOL on Jupiter afterwards
+      const allIxs = [...prefixIxs, claimIx];
+      const sig = await sendTx(allIxs, []);
       setTxSig(sig);
       return sig;
     } catch (e: any) { console.error("Care Market error:", e); setError(e?.message || e?.toString() || JSON.stringify(e)); } finally { setLoading(false); }
-  }, [wallet, sendTx]);
+  }, [wallet, connection, sendTx]);
 
   return { donate, earlyWithdraw, claim, loading, error, txSig, setError };
 }

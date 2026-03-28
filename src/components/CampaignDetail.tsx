@@ -160,7 +160,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
                 )}
                 {campaign.status === "Completed" && (
                   <button className={styles.claimBtn} onClick={() => claim(campaign.id, Number(userStake.jitosolShare))} disabled={loading}>
-                    {loading ? "Swapping jitoSOL to SOL..." : "Claim SOL back"}
+                    {loading ? "Processing..." : "Claim SOL back"}
                   </button>
                 )}
                 {campaign.status === "Cancelled" && (
