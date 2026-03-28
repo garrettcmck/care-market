@@ -1,0 +1,52 @@
+.wrap { margin-bottom: 4px; }
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.toggleText {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+.chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.chevronOpen { transform: rotate(180deg); }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+.stat {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
+}
+.val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+.usd {
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+}
+.sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}

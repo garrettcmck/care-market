@@ -1,5 +1,5 @@
 .content { padding-bottom: 20px; }
-.hiwWrap { padding: 16px 20px 10px; }
+.sectionWrap { padding: 0 20px; }
 .sectionLabel { padding: 8px 20px 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
 .cardList { padding: 0 20px; }
 .footer { padding: 16px 20px 24px; text-align: center; font-size: 10px; color: var(--text-hint); letter-spacing: 0.3px; text-transform: uppercase; }

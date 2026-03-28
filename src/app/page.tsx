@@ -4,6 +4,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import Header from "@/components/Header";
 import HowItWorks from "@/components/HowItWorks";
+import ProtocolStats from "@/components/ProtocolStats";
 import CampaignCard, { CampaignData } from "@/components/CampaignCard";
 import CampaignDetail from "@/components/CampaignDetail";
 import WalletProfile from "@/components/WalletProfile";
@@ -55,7 +56,8 @@ export default function HomePage() {
         <CampaignDetail campaign={selectedCampaign} onBack={() => { setSelectedCampaign(null); loadCampaigns(); }} />
       ) : (
         <div className={styles.content}>
-          <div className={styles.hiwWrap}><HowItWorks /></div>
+          <div className={styles.sectionWrap}><HowItWorks /></div>
+          <div className={styles.sectionWrap}><ProtocolStats campaigns={campaigns} /></div>
           {loading && <div className={styles.loadingMsg}>Loading campaigns...</div>}
           {error && <div className={styles.errorMsg}>{error}</div>}
           {!loading && active.length > 0 && (
@@ -69,7 +71,7 @@ export default function HomePage() {
           {!loading && campaigns.length === 0 && !error && (
             <div className={styles.emptyMsg}>No campaigns yet</div>
           )}
-          {!loading && <WalletProfile campaignCount={campaigns.length} />}
+          {!loading && <WalletProfile campaignCount={campaigns.length} campaigns={campaigns} onSelectCampaign={setSelectedCampaign} />}
         </div>
       )}
       <footer className={styles.footer}>Care Market — Lossless giving on Solana</footer>
