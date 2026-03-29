@@ -1,57 +1,12 @@
-.header {
-  padding: 14px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: transparent;
-}
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.logoIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.logoText {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--logo-text);
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.walletBtn {
-  font-size: 12px !important;
-  height: 32px !important;
-  padding: 0 14px !important;
-  border-radius: 16px !important;
-  background: var(--green) !important;
-}
-.themeBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
-  flex-shrink: 0;
-}
-.themeBtn:hover {
-  border-color: var(--border-hover);
-}
+.header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; background: transparent; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logoIcon { width: 30px; height: 30px; border-radius: 8px; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logoText { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; color: var(--logo-text); }
+.right { display: flex; align-items: center; gap: 6px; }
+.walletBtn { font-size: 12px !important; height: 32px !important; padding: 0 14px !important; border-radius: 16px !important; background: var(--green) !important; }
+.settingsWrap { position: relative; }
+.settingsBtn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s; flex-shrink: 0; }
+.settingsBtn:hover { transform: rotate(45deg); }
+.dropdown { position: absolute; top: 40px; right: 0; z-index: 100; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 4px; min-width: 150px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.dropItem { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: none; background: transparent; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; border-radius: 8px; font-family: inherit; }
+.dropItem:hover { background: var(--bg-surface); }

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import SolIcon from "./SolIcon";
+import Amt from "./Amt";
 import styles from "./CampaignCard.module.css";
 
 const APY = 0.075;
@@ -53,7 +53,7 @@ export default function CampaignCard({ campaign, onClick }: { campaign: Campaign
       <p className={styles.desc}>{campaign.desc}</p>
       <div className={styles.cardStats}>
         <div className={styles.cardStat}>
-          <div className={styles.cardStatVal}><SolIcon />{campaign.totalStaked.toFixed(2)}</div>
+          <div className={styles.cardStatVal}><Amt sol={campaign.totalStaked} /></div>
           <div className={styles.cardStatSub}>SOL staked</div>
         </div>
         <div className={styles.cardStat}>
@@ -75,7 +75,7 @@ export default function CampaignCard({ campaign, onClick }: { campaign: Campaign
         />
       </div>
       <div className={styles.yieldLine}>
-        <span><SolIcon />{yieldEarned.toFixed(4)} / {campaign.goalSol} earned</span>
+        <span><Amt sol={yieldEarned} decimals={4} /> / <Amt sol={campaign.goalSol} /> earned</span>
       </div>
     </div>
   );

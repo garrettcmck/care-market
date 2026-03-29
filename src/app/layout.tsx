@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import WalletContextProvider from "@/components/WalletProvider";
+import { SettingsProvider } from "@/contexts/Settings";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,15 +10,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
         <WalletContextProvider>
-          <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh" }}>
-            {children}
-          </div>
+          <SettingsProvider>
+            <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh" }}>
+              {children}
+            </div>
+          </SettingsProvider>
         </WalletContextProvider>
       </body>
     </html>
