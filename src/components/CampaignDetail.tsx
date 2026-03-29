@@ -9,6 +9,7 @@ import { findCampaignPDA } from "@/utils/constants";
 import { CampaignData, estimateYieldEarned, estimateWeeksLeft } from "./CampaignCard";
 import UpdateFeed from "./UpdateFeed";
 import ContributorList from "./ContributorList";
+import TransactionLog from "./TransactionLog";
 import Amt from "./Amt";
 import styles from "./CampaignDetail.module.css";
 
@@ -191,6 +192,7 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
       </div>
 
       <ContributorList campaignPDA={findCampaignPDA(campaign.id)[0].toBase58()} />
+      <TransactionLog campaignPDA={findCampaignPDA(campaign.id)[0].toBase58()} goalSol={campaign.goalSol} totalStaked={campaign.totalStaked} />
       <UpdateFeed campaignId={campaign.id} />
     </div>
   );

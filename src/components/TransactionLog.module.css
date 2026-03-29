@@ -1,0 +1,36 @@
+.wrap { margin: 16px 20px 0; }
+.title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px; }
+.loading { text-align: center; font-size: 13px; color: var(--text-secondary); padding: 12px; }
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+  transition: background 0.3s;
+}
+.rowLeft { display: flex; align-items: center; gap: 10px; }
+.typeBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.deposit { background: var(--green-bg); color: var(--green); }
+.withdraw { background: var(--orange-bg); color: var(--orange-text); }
+.txInfo { display: flex; flex-direction: column; }
+.txWallet { font-size: 13px; font-weight: 600; color: var(--text); }
+.txTime { font-size: 10px; color: var(--text-muted); }
+.rowRight { text-align: right; }
+.txAmount { font-size: 14px; font-weight: 700; }
+.amountGreen { color: var(--green); }
+.amountOrange { color: var(--orange-text); }
+.timeSaved { font-size: 9px; color: var(--green); font-weight: 600; margin-top: 1px; }
