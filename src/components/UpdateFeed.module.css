@@ -1,5 +1,8 @@
 .wrap { margin-top: 20px; padding: 0 20px 20px; }
-.title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px; }
+.toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0; border: none; background: transparent; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+.title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.chevron { color: var(--text-muted); transition: transform 0.2s; }
+.chevronOpen { transform: rotate(180deg); }
 .post { padding: 14px 16px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); margin-bottom: 8px; transition: background 0.3s, border-color 0.3s; }
 .date { font-size: 10px; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
 .text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }

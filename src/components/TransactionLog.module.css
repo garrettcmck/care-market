@@ -1,6 +1,14 @@
 .wrap { margin: 16px 20px 0; }
-.title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px; }
+.headerRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.toggle { display: flex; align-items: center; gap: 6px; border: none; background: transparent; cursor: pointer; font-family: inherit; padding: 0; }
+.title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+.chevron { color: var(--text-muted); transition: transform 0.2s; }
+.chevronOpen { transform: rotate(180deg); }
+.filterBtns { display: flex; gap: 4px; }
+.filterBtn { padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border); background: transparent; font-size: 10px; font-weight: 700; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.filterActive { background: var(--green); color: #fff; border-color: var(--green); }
 .loading { text-align: center; font-size: 13px; color: var(--text-secondary); padding: 12px; }
+.empty { text-align: center; font-size: 12px; color: var(--text-muted); padding: 12px; }
 .row {
   display: flex;
   justify-content: space-between;

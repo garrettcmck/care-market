@@ -14,6 +14,7 @@ export default function ContributorList({ campaignPDA }: { campaignPDA: string }
   const { connection } = useConnection();
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -46,8 +47,11 @@ export default function ContributorList({ campaignPDA }: { campaignPDA: string }
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.title}>Contributors</div>
-      {contributors.map((c, i) => {
+      <button className={styles.toggle} onClick={() => setOpen(!open)}>
+        <span className={styles.title}>Contributors ({contributors.length})</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      {open && contributors.map((c, i) => {
         const xLink = getXLink(c.wallet);
         return (
           <div key={i} className={styles.row}>

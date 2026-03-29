@@ -191,9 +191,9 @@ export default function CampaignDetail({ campaign, onBack }: { campaign: Campaig
         )}
       </div>
 
+      <UpdateFeed campaignId={campaign.id} />
       <ContributorList campaignPDA={findCampaignPDA(campaign.id)[0].toBase58()} />
       <TransactionLog campaignPDA={findCampaignPDA(campaign.id)[0].toBase58()} goalSol={campaign.goalSol} totalStaked={campaign.totalStaked} />
-      <UpdateFeed campaignId={campaign.id} />
     </div>
   );
 }
